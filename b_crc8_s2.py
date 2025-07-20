@@ -118,11 +118,18 @@ def receive_serial(ser):
         if received_data:
             received_bytes = [b for b in received_data.strip()]
 
-            crc = crc8(received_bytes)
-            received_bytes.append(crc)
+            if len(received_bytes) > 1:
+                data_to_check = received_bytes[:-1]
+                received_crc = received_bytes[-1]
+                calculated_crc = crc8(data_to_check)
 
-            print("\nReceived Data:")
-            print(format_output(received_bytes))
+                if calculated_crc == received_crc:
+                    print("\nReceived Data:")
+                    print(format_output(data_to_check))
+                else:
+                    print("\nCRC 8 error")
+            else:
+                print("\nReceived data is too short for CRC check.")
         else:
             print("\nNo data received from serial port.")
 

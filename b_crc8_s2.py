@@ -103,33 +103,31 @@ def format_output(byte_list):
     """Format the byte list as hex string."""
     return ' '.join(f'{b:02x}' for b in byte_list)
 
-def send_receive_serial(byte_list):
-    """Sends a byte list over serial, receives a response, and prints it with CRC8."""
+def send_serial(ser, byte_list):
+    """Sends a byte list over the serial port."""
     try:
-        with serial.Serial(COM_PORT, BAUD_RATES, timeout=1) as ser:
-            # Send the byte list with a line feed
-            ser.write(bytearray(byte_list) + b'\n')
+        ser.write(bytearray(byte_list) + b'\n')
+    except serial.SerialException as e:
+        print(f"\nSerial port error during send: {e}")
 
-            # Read response until CR or LF
-            received_data = ser.read_until(b'\r\n')
-            
-            # Process and print the received data
-            if received_data:
-                # Strip CR/LF and convert to list of ints
-                received_bytes = [b for b in received_data.strip()]
-                
-                # Calculate CRC8 and append
-                crc = crc8(received_bytes)
-                received_bytes.append(crc)
-                
-                # Print the result
-                print("\nReceived Data:")
-                print(format_output(received_bytes))
-            else:
-                print("\nNo data received from serial port.")
+def receive_serial(ser):
+    """Receives data from the serial port, processes it, and prints the result."""
+    try:
+        received_data = ser.read_until(b'\r\n')
+
+        if received_data:
+            received_bytes = [b for b in received_data.strip()]
+
+            crc = crc8(received_bytes)
+            received_bytes.append(crc)
+
+            print("\nReceived Data:")
+            print(format_output(received_bytes))
+        else:
+            print("\nNo data received from serial port.")
 
     except serial.SerialException as e:
-        print(f"\nSerial port error: {e}")
+        print(f"\nSerial port error during receive: {e}")
 
 def main():
     """Main function to coordinate the process."""
@@ -151,7 +149,12 @@ def main():
     print(format_output(byte_list))
 
     # Send and receive over serial
-    send_receive_serial(byte_list)
+    try:
+        with serial.Serial(COM_PORT, BAUD_RATES, timeout=1) as ser:
+            send_serial(ser, byte_list)
+            receive_serial(ser)
+    except serial.SerialException as e:
+        print(f"\nSerial port error: {e}")
 
 if __name__ == "__main__":
     main()

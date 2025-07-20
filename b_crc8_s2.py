@@ -11,6 +11,7 @@ import sys
 import os
 import time
 import serial
+from datetime import datetime
 if os.name == 'nt': # is nt
     import msvcrt
 
@@ -124,6 +125,7 @@ def receive_serial(ser):
                 calculated_crc = crc8(data_to_check)
 
                 if calculated_crc == received_crc:
+                    print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"))
                     print("\nReceived Data:")
                     print(format_output(data_to_check))
                 else:
@@ -152,6 +154,7 @@ def main():
     byte_list.append(crc)
     
     # Print result
+    print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"))
     print("\nOutput:")
     print(format_output(byte_list))
 

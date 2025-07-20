@@ -1,3 +1,7 @@
+# 2025/7/20
+# add ur from google Jules
+#  test ok
+
 COM_PORT = 'COM3'
 BAUD_RATES = 115200
 
@@ -155,8 +159,8 @@ def main():
     
     # Print result
     print(datetime.now().strftime("%Y/%m/%d, %H:%M:%S"))
-    print("\nOutput:")
-    print(format_output(byte_list))
+    print("Iutput:")
+    print(format_output(byte_list), "\n")
 
     # Send and receive over serial
     try:

@@ -1,3 +1,6 @@
+COM_PORT = 'COM3'
+BAUD_RATES = 115200
+
 #
 # 2025/6/10
 # from Grok 
@@ -7,6 +10,7 @@
 import sys
 import os
 import time
+import serial
 if os.name == 'nt': # is nt
     import msvcrt
 
@@ -99,6 +103,34 @@ def format_output(byte_list):
     """Format the byte list as hex string."""
     return ' '.join(f'{b:02x}' for b in byte_list)
 
+def send_receive_serial(byte_list):
+    """Sends a byte list over serial, receives a response, and prints it with CRC8."""
+    try:
+        with serial.Serial(COM_PORT, BAUD_RATES, timeout=1) as ser:
+            # Send the byte list with a line feed
+            ser.write(bytearray(byte_list) + b'\n')
+
+            # Read response until CR or LF
+            received_data = ser.read_until(b'\r\n')
+
+            # Process and print the received data
+            if received_data:
+                # Strip CR/LF and convert to list of ints
+                received_bytes = [b for b in received_data.strip()]
+
+                # Calculate CRC8 and append
+                crc = crc8(received_bytes)
+                received_bytes.append(crc)
+
+                # Print the result
+                print("\nReceived Data:")
+                print(format_output(received_bytes))
+            else:
+                print("\nNo data received from serial port.")
+
+    except serial.SerialException as e:
+        print(f"\nSerial port error: {e}")
+
 def main():
     """Main function to coordinate the process."""
     print("Enter hex digits (0-9, a-f, A-F), press Enter to finish:")
@@ -117,6 +149,9 @@ def main():
     # Print result
     print("\nOutput:")
     print(format_output(byte_list))
+
+    # Send and receive over serial
+    send_receive_serial(byte_list)
 
 if __name__ == "__main__":
     main()
